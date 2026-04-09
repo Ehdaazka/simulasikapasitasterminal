@@ -1,127 +1,163 @@
 import streamlit as st
 
+# =========================
 # CONFIG
+# =========================
 st.set_page_config(page_title="Port Capacity Dashboard", layout="wide")
 
-# CSS
+# =========================
+# CSS (BIAR KEREN)
+# =========================
 st.markdown("""
 <style>
-.main { background-color: #121212; }
-
-.card {
-    background: #1E1E1E;
-    padding: 20px;
-    border-radius: 14px;
-    margin-bottom: 15px;
+body {
+    background-color: #0E1117;
 }
 
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #111827;
+}
+
+/* Card */
+.card {
+    background: #1F2937;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Result */
 .result-box {
-    background: linear-gradient(135deg, #4A90E2, #6FC3FF);
+    background: linear-gradient(135deg, #2563EB, #60A5FA);
     color: white;
     padding: 25px;
-    border-radius: 14px;
+    border-radius: 16px;
     text-align: center;
     font-size: 22px;
-    font-weight: 600;
+    font-weight: bold;
+}
+
+/* Title */
+h1, h2, h3 {
+    color: #F9FAFB;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# HEADER
-st.markdown("## 🚢 Port Capacity Dashboard")
-st.caption("Operational analysis for terminal capacity")
+# =========================
+# SIDEBAR MENU
+# =========================
+st.sidebar.title("🚢 Port Dashboard")
+menu = st.sidebar.radio(
+    "Pilih Menu",
+    ["Dashboard", "Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"]
+)
 
-st.sidebar.title("⚙️ Settings")
-
-# TABS
-tabs = st.tabs(["Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"])
-
-# ================= BERTH =================
-with tabs[0]:
-    st.subheader("🔵 Berth Capacity")
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+# =========================
+# DASHBOARD
+# =========================
+if menu == "Dashboard":
+    st.title("📊 Overview Capacity")
 
     col1, col2, col3 = st.columns(3)
 
+    col1.markdown('<div class="card">Berth<br><b>501,720</b></div>', unsafe_allow_html=True)
+    col2.markdown('<div class="card">Yard<br><b>15,943</b></div>', unsafe_allow_html=True)
+    col3.markdown('<div class="card">QC<br><b>9,549,372</b></div>', unsafe_allow_html=True)
+
+# =========================
+# BERTH
+# =========================
+elif menu == "Berth":
+    st.title("🔵 Berth Capacity")
+
+    col1, col2 = st.columns(2)
+
     with col1:
-        length_berth = st.number_input("Length of Berth (m)", 0)
-        num_berth = st.number_input("Number of Berth", 0)
-        crane_ratio = st.number_input("Crane Ratio", 0.0)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        length = st.number_input("Length of Berth", 0)
+        loa = st.number_input("Avg LOA", 0)
+        dl = st.number_input("Avg D/L", 0)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        avg_loa = st.number_input("Avg LOA (m)", 0)
-        avg_dl = st.number_input("Avg D/L per call", 0)
-        bor = st.number_input("BOR", 0.0)
-
-    with col3:
-        safety_dist = st.number_input("Safety distance", 0.0)
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         bch = st.number_input("BCH", 0)
-        teus_ratio = st.number_input("Teu's Ratio", 0.0)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+        crane_ratio = st.number_input("Crane Ratio", 0.0)
+        teus = st.number_input("TEUs Ratio", 1.13)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # HITUNGAN
     bsh = bch * crane_ratio
-    bt_per_call = (avg_dl / bsh) if bsh > 0 else 0
+    bt = (dl / bsh) if bsh > 0 else 0
 
     st.write("BSH =", bsh)
-    st.write("BT per Call =", bt_per_call)
+    st.write("BT =", bt)
 
-    berth_cap = 501720
+    # OUTPUT
     st.markdown(f"""
     <div class="result-box">
         Berth Capacity<br>
-        {berth_cap:,.0f} TEU / Tahun
+        {501720:,.0f} TEU / Tahun
     </div>
     """, unsafe_allow_html=True)
 
-# ================= YARD =================
-with tabs[1]:
-    st.subheader("🟢 Yard Capacity")
+# =========================
+# YARD
+# =========================
+elif menu == "Yard":
+    st.title("🟢 Yard Capacity")
 
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     row = st.number_input("Row", 0)
     slot = st.number_input("Slot", 0)
     tier = st.number_input("Tier", 0)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    yard_cap = 15943
     st.markdown(f"""
     <div class="result-box">
         Yard Capacity<br>
-        {yard_cap:,.0f} TEU / Tahun
+        {15943:,.0f} TEU / Tahun
     </div>
     """, unsafe_allow_html=True)
 
-# ================= QC =================
-with tabs[2]:
-    st.subheader("🟣 Quay Crane Capacity")
+# =========================
+# QC
+# =========================
+elif menu == "Quay Crane":
+    st.title("🟣 Quay Crane Capacity")
 
     total_qcc = st.number_input("Total QCC", 0)
     bch_qcc = st.number_input("BCH QCC", 0)
 
-    qc_cap = 9549372
     st.markdown(f"""
     <div class="result-box">
         QC Capacity<br>
-        {qc_cap:,.0f} TEU / Tahun
+        {9549372:,.0f}
     </div>
     """, unsafe_allow_html=True)
 
-# ================= YARD CRANE =================
-with tabs[3]:
-    st.subheader("🟤 Yard Crane Capacity")
-    st.write("Masih bisa kamu isi nanti")
+# =========================
+# YARD CRANE
+# =========================
+elif menu == "Yard Crane":
+    st.title("🟤 Yard Crane")
+    st.info("Masih bisa kamu isi nanti")
 
-# ================= GATE =================
-with tabs[4]:
-    st.subheader("🟠 Gate Capacity")
+# =========================
+# GATE
+# =========================
+elif menu == "Gate":
+    st.title("🟠 Gate Capacity")
 
-    lane_gi = st.number_input("Lane GI", 0)
-    lane_go = st.number_input("Lane GO", 0)
+    lane = st.number_input("Lane", 0)
+    service = st.number_input("Service Time", 0)
 
     st.markdown("""
     <div class="result-box">
         Gate Capacity<br>
-        465,133 TEU / Hari
+        465,133 TEU
     </div>
     """, unsafe_allow_html=True)
