@@ -6,52 +6,81 @@ import streamlit as st
 st.set_page_config(page_title="Port Capacity Dashboard", layout="wide")
 
 # =========================
-# CSS (BIAR KEREN)
+# CSS (PELINDO STYLE)
 # =========================
 st.markdown("""
 <style>
+
+/* Background utama */
 body {
-    background-color: #0E1117;
+    background-color: #F5F7FA;
 }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background-color: #111827;
+    background-color: #0B3C5D;
+}
+
+/* Teks sidebar putih */
+[data-testid="stSidebar"] * {
+    color: white !important;
 }
 
 /* Card */
 .card {
-    background: #1F2937;
+    background: white;
     padding: 20px;
-    border-radius: 16px;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     margin-bottom: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* Result */
+/* Result box */
 .result-box {
-    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    background: linear-gradient(135deg, #0B3C5D, #1E81B0);
     color: white;
     padding: 25px;
-    border-radius: 16px;
+    border-radius: 14px;
     text-align: center;
     font-size: 22px;
     font-weight: bold;
 }
 
-/* Title */
+/* Judul */
 h1, h2, h3 {
-    color: #F9FAFB;
+    color: #0B3C5D;
 }
+
+/* Hover menu */
+div[role="radiogroup"] label:hover {
+    background-color: #1E81B0;
+    border-radius: 8px;
+    padding: 5px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# SIDEBAR MENU
+# HEADER (LOGO + TITLE)
 # =========================
-st.sidebar.title("🚢 Port Dashboard")
+col1, col2 = st.columns([1, 6])
+
+with col1:
+    st.image("logo.png", width=90)
+
+with col2:
+    st.markdown("## Port Capacity Dashboard")
+    st.caption("Simulasi kapasitas terminal petikemas")
+
+# =========================
+# SIDEBAR
+# =========================
+st.sidebar.image("logo.png", width=120)
+st.sidebar.title("Menu Navigasi")
+
 menu = st.sidebar.radio(
-    "Pilih Menu",
+    "",
     ["Dashboard", "Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"]
 )
 
@@ -59,19 +88,19 @@ menu = st.sidebar.radio(
 # DASHBOARD
 # =========================
 if menu == "Dashboard":
-    st.title("📊 Overview Capacity")
+    st.subheader("📊 Overview Capacity")
 
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
-    col1.markdown('<div class="card">Berth<br><b>501,720</b></div>', unsafe_allow_html=True)
-    col2.markdown('<div class="card">Yard<br><b>15,943</b></div>', unsafe_allow_html=True)
-    col3.markdown('<div class="card">QC<br><b>9,549,372</b></div>', unsafe_allow_html=True)
+    c1.markdown('<div class="card">Berth Capacity<br><b>501,720</b></div>', unsafe_allow_html=True)
+    c2.markdown('<div class="card">Yard Capacity<br><b>15,943</b></div>', unsafe_allow_html=True)
+    c3.markdown('<div class="card">QC Capacity<br><b>9,549,372</b></div>', unsafe_allow_html=True)
 
 # =========================
 # BERTH
 # =========================
 elif menu == "Berth":
-    st.title("🔵 Berth Capacity")
+    st.subheader("🔵 Berth Capacity")
 
     col1, col2 = st.columns(2)
 
@@ -79,7 +108,7 @@ elif menu == "Berth":
         st.markdown('<div class="card">', unsafe_allow_html=True)
         length = st.number_input("Length of Berth", 0)
         loa = st.number_input("Avg LOA", 0)
-        dl = st.number_input("Avg D/L", 0)
+        dl = st.number_input("Avg D/L per Call", 0)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -89,14 +118,13 @@ elif menu == "Berth":
         teus = st.number_input("TEUs Ratio", 1.13)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # HITUNGAN
+    # HITUNGAN (placeholder)
     bsh = bch * crane_ratio
     bt = (dl / bsh) if bsh > 0 else 0
 
     st.write("BSH =", bsh)
-    st.write("BT =", bt)
+    st.write("BT per Call =", bt)
 
-    # OUTPUT
     st.markdown(f"""
     <div class="result-box">
         Berth Capacity<br>
@@ -108,12 +136,13 @@ elif menu == "Berth":
 # YARD
 # =========================
 elif menu == "Yard":
-    st.title("🟢 Yard Capacity")
+    st.subheader("🟢 Yard Capacity")
 
     st.markdown('<div class="card">', unsafe_allow_html=True)
     row = st.number_input("Row", 0)
     slot = st.number_input("Slot", 0)
     tier = st.number_input("Tier", 0)
+    dwell = st.number_input("Dwelling Time", 0)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
@@ -124,18 +153,20 @@ elif menu == "Yard":
     """, unsafe_allow_html=True)
 
 # =========================
-# QC
+# QUAY CRANE
 # =========================
 elif menu == "Quay Crane":
-    st.title("🟣 Quay Crane Capacity")
+    st.subheader("🟣 Quay Crane Capacity")
 
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     total_qcc = st.number_input("Total QCC", 0)
     bch_qcc = st.number_input("BCH QCC", 0)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="result-box">
         QC Capacity<br>
-        {9549372:,.0f}
+        {9549372:,.0f} TEU / Tahun
     </div>
     """, unsafe_allow_html=True)
 
@@ -143,21 +174,23 @@ elif menu == "Quay Crane":
 # YARD CRANE
 # =========================
 elif menu == "Yard Crane":
-    st.title("🟤 Yard Crane")
-    st.info("Masih bisa kamu isi nanti")
+    st.subheader("🟤 Yard Crane Capacity")
+    st.info("Masih bisa kamu isi rumusnya nanti")
 
 # =========================
 # GATE
 # =========================
 elif menu == "Gate":
-    st.title("🟠 Gate Capacity")
+    st.subheader("🟠 Gate Capacity")
 
-    lane = st.number_input("Lane", 0)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    lane = st.number_input("Total Lane", 0)
     service = st.number_input("Service Time", 0)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("""
     <div class="result-box">
         Gate Capacity<br>
-        465,133 TEU
+        465,133 TEU / Hari
     </div>
     """, unsafe_allow_html=True)
