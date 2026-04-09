@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 
 # =========================
 # CONFIG
@@ -11,7 +12,7 @@ st.set_page_config(page_title="Port Capacity Dashboard", layout="wide")
 st.markdown("""
 <style>
 
-/* Background utama */
+/* Background */
 body {
     background-color: #F5F7FA;
 }
@@ -21,7 +22,7 @@ body {
     background-color: #0B3C5D;
 }
 
-/* Teks sidebar putih */
+/* Sidebar text putih */
 [data-testid="stSidebar"] * {
     color: white !important;
 }
@@ -31,7 +32,7 @@ body {
     background: white;
     padding: 20px;
     border-radius: 14px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     margin-bottom: 15px;
 }
 
@@ -46,16 +47,9 @@ body {
     font-weight: bold;
 }
 
-/* Judul */
+/* Title */
 h1, h2, h3 {
     color: #0B3C5D;
-}
-
-/* Hover menu */
-div[role="radiogroup"] label:hover {
-    background-color: #1E81B0;
-    border-radius: 8px;
-    padding: 5px;
 }
 
 </style>
@@ -67,7 +61,8 @@ div[role="radiogroup"] label:hover {
 col1, col2 = st.columns([1, 6])
 
 with col1:
-    st.image("logo.png", width=90)
+    if os.path.exists("logo.jpg"):
+        st.image("logo.jpg", width=90)
 
 with col2:
     st.markdown("## Port Capacity Dashboard")
@@ -76,7 +71,9 @@ with col2:
 # =========================
 # SIDEBAR
 # =========================
-st.sidebar.image("logo.png", width=120)
+if os.path.exists("logo.jpg"):
+    st.sidebar.image("logo.jpg", width=120)
+
 st.sidebar.title("Menu Navigasi")
 
 menu = st.sidebar.radio(
@@ -118,7 +115,7 @@ elif menu == "Berth":
         teus = st.number_input("TEUs Ratio", 1.13)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # HITUNGAN (placeholder)
+    # HITUNGAN (sementara)
     bsh = bch * crane_ratio
     bt = (dl / bsh) if bsh > 0 else 0
 
@@ -175,7 +172,7 @@ elif menu == "Quay Crane":
 # =========================
 elif menu == "Yard Crane":
     st.subheader("🟤 Yard Crane Capacity")
-    st.info("Masih bisa kamu isi rumusnya nanti")
+    st.info("Silakan tambahkan rumus nanti")
 
 # =========================
 # GATE
