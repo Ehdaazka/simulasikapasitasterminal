@@ -1,3 +1,9 @@
+import streamlit as st
+
+# ======================
+# PAGE CONFIG
+# ======================
+st.set_page_config(page_title="Port Capacity", layout="wide")
 st.markdown("""
 <style>
 
