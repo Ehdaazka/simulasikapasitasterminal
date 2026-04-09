@@ -1,190 +1,102 @@
 import streamlit as st
 
-# ======================
-# PAGE CONFIG
-# ======================
+# Setup page agar lebar dan judul tab browser rapi
 st.set_page_config(page_title="Port Capacity", layout="wide")
 
-# ======================
-# CUSTOM CSS (NEW UI)
-# ======================
+# CSS untuk memadatkan spasi antar elemen
 st.markdown("""
-<style>
+    <style>
+    .block-container { padding-top: 2rem; padding-bottom: 0rem; }
+    h3 { margin-bottom: 0.5rem; font-size: 1.2rem !important; }
+    [data-testid="stMetricValue"] { font-size: 1.5rem !important; }
+    div[data-testid="column"] { padding: 0.5rem; border-radius: 5px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-/* BACKGROUND */
-.stApp {
-    background-color: #D9E1F1;
-}
-
-/* CONTAINER */
-.block-container {
-    padding-top: 1.5rem;
-    padding-bottom: 0rem;
-}
-
-/* CARD */
-.card {
-    background: linear-gradient(135deg, #1E2E4F, #31487A);
-    padding: 1.2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
-    color: white;
-}
-
-/* TITLE */
-.card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-    color: #8FB3E2;
-}
-
-/* METRIC */
-[data-testid="stMetricValue"] {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: white;
-}
-
-[data-testid="stMetricLabel"] {
-    color: #D9E1F1;
-}
-
-/* INPUT */
-label {
-    color: #D9E1F1 !important;
-}
-
-input {
-    background-color: #192338 !important;
-    color: white !important;
-    border-radius: 6px !important;
-    border: 1px solid #31487A !important;
-}
-
-/* TAB */
-button[data-baseweb="tab"] {
-    color: #1E2E4F;
-    font-weight: 600;
-}
-
-button[data-baseweb="tab"][aria-selected="true"] {
-    background-color: #31487A !important;
-    color: white !important;
-    border-radius: 8px;
-}
-
-/* ALERT */
-.stAlert {
-    background-color: #8FB3E2 !important;
-    color: #192338 !important;
-    border-radius: 8px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# ======================
-# TITLE
-# ======================
-st.markdown("<h1 style='color:#192338;'>🚢 Terminal Capacity Simulation</h1>", unsafe_allow_html=True)
+st.title("🚢 Port Operational Capacity")
 
 tabs = st.tabs(["Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"])
 
-# ======================
-# TAB 1: BERTH
-# ======================
+# --- TAB 1: BERTH ---
 with tabs[0]:
-    left, right = st.columns([3,1])
+    # Menggunakan 2 kolom besar: Kiri untuk Input & Auto-Calc, Kanan untuk Ringkasan Utama
+    main_col, side_col = st.columns([3, 1])
 
-    with left:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">🔵 Berth Capacity Input</div>', unsafe_allow_html=True)
-
+    with main_col:
+        st.subheader("🔵 Parameter Input & Auto-Calculation")
+        
+        # Row 1: Input Utama
         c1, c2, c3, c4 = st.columns(4)
-        length_berth = c1.number_input("Length of Berth", value=0)
-        avg_loa = c2.number_input("Avg LOA", value=0)
+        length_berth = c1.number_input("Length of Berth (m)", value=0)
+        avg_loa = c2.number_input("Avg LOA (m)", value=0)
         bch = c3.number_input("BCH", value=0)
         crane_ratio = c4.number_input("Crane Ratio", value=0.0, step=0.1)
 
+        # Row 2: Input & Locked Params
         c5, c6, c7, c8 = st.columns(4)
-        avg_dl = c5.number_input("Avg D/L", value=0)
-        teus_ratio = c6.number_input("Teus Ratio", value=0.0, step=0.01)
-        safety_dist = c7.number_input("Safety Dist", value=1.1, disabled=True)
-        bor = c8.number_input("BOR", value=0.65, disabled=True)
+        avg_dl = c5.number_input("Avg D/L per call", value=0)
+        teus_ratio = c6.number_input("Teu's Ratio", value=0.0, step=0.01)
+        safety_dist = c7.number_input("Safety Dist (Locked)", value=1.1, disabled=True)
+        bor = c8.number_input("BOR (Locked)", value=0.65, disabled=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.divider()
 
-        # CALCULATION
+        # LOGIKA PERHITUNGAN
+        # 1. Number Of Berth
         num_berth = length_berth / (avg_loa * safety_dist) if avg_loa > 0 else 0
+        # 2. BSH
         bsh = bch * crane_ratio
+        # 3. BT per Call
         bt_per_call = avg_dl / bsh if bsh > 0 else 0
+        # 4. Total Hours (Locked)
         total_hours = 8760
+        # 5. Total Ship Call / Year
         ship_call_year = (total_hours / bt_per_call) * bor if bt_per_call > 0 else 0
+        # 6. Final Capacity
         berth_cap = ship_call_year * avg_dl * teus_ratio
 
-        # RESULT
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">📊 Live Calculation</div>', unsafe_allow_html=True)
-
+        # Baris Hasil Otomatis (Ringkas)
+        st.write("🔍 **Live Calculation Results:**")
         r1, r2, r3, r4 = st.columns(4)
-        r1.metric("Num Berth", f"{num_berth:.2f}")
+        r1.metric("Num of Berth", f"{num_berth:.2f}")
         r2.metric("BSH", f"{bsh:.2f}")
         r3.metric("BT/Call", f"{bt_per_call:.2f}")
-        r4.metric("Ship/Yr", f"{ship_call_year:.0f}")
+        r4.metric("Ship Call/Yr", f"{ship_call_year:.0f}")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+    with side_col:
+        # Box Hasil Akhir di Samping agar terlihat jelas tanpa scroll
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.info("### Final Result")
+        st.metric("Berth Capacity", f"{berth_cap:,.0f}", delta="TEU/tahun")
+        
+        with st.expander("Lihat Konstanta"):
+            st.write(f"Total Hours: {total_hours}")
+            st.write(f"BOR Target: {bor}")
 
-    with right:
-        st.markdown('<div class="card" style="background: linear-gradient(135deg, #192338, #1E2E4F);">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">🚀 Final Result</div>', unsafe_allow_html=True)
-
-        st.metric("Berth Capacity", f"{berth_cap:,.0f}", "TEU/year")
-
-        st.markdown("**Constants**")
-        st.caption(f"Total Hours: {total_hours}")
-        st.caption(f"BOR: {bor}")
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ======================
-# TAB 2: YARD
-# ======================
+# --- TAB 2: YARD (Dibuat Ringkas Juga) ---
 with tabs[1]:
-    left, right = st.columns([3,1])
-
-    with left:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">🟢 Yard Capacity Input</div>', unsafe_allow_html=True)
-
+    col_y_left, col_y_right = st.columns([3, 1])
+    with col_y_left:
+        st.subheader("🟢 Yard Input")
         y1, y2, y3 = st.columns(3)
         row = y1.number_input("Row", value=0)
         slot = y2.number_input("Slot", value=0)
         tier = y3.number_input("Tier", value=0)
-
+        
         y4, y5, y6 = st.columns(3)
         eff_cap = y4.number_input("Effective Cap", value=0)
-        dauling = y5.number_input("Dwell Time", value=1)
+        dauling = y5.number_input("Dauling Time", value=0)
         yor_max = y6.number_input("YOR Max (%)", value=70)
+        
+        # Rumus sederhana
+        yard_cap = (slot * row * tier * 365 / (dauling if dauling > 0 else 1)) * (yor_max/100)
 
-        yard_cap = (slot * row * tier * 365 / dauling) * (yor_max/100)
+    with col_y_right:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.success("### Final Result")
+        st.metric("Yard Capacity", f"{yard_cap:,.0f}", "TEU/tahun")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with right:
-        st.markdown('<div class="card" style="background: linear-gradient(135deg, #192338, #1E2E4F);">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">🚀 Final Result</div>', unsafe_allow_html=True)
-
-        st.metric("Yard Capacity", f"{yard_cap:,.0f}", "TEU/year")
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ======================
-# TAB 5: GATE
-# ======================
+# --- TAB LAINNYA ---
 with tabs[4]:
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">🟠 Gate In & Out</div>', unsafe_allow_html=True)
-    st.warning("Gate logic belum dibuat")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.subheader("🟠 Gate Summary")
+    st.columns(3)[0].warning("Gate In & Out logic ready.")
