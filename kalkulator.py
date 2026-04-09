@@ -1,193 +1,102 @@
 import streamlit as st
-import os
 
-# =========================
-# CONFIG
-# =========================
-st.set_page_config(page_title="Port Capacity Dashboard", layout="wide")
+# Setup page agar lebar dan judul tab browser rapi
+st.set_page_config(page_title="Port Capacity", layout="wide")
 
-# =========================
-# CSS (PELINDO STYLE)
-# =========================
+# CSS untuk memadatkan spasi antar elemen
 st.markdown("""
-<style>
-
-/* Background */
-body {
-    background-color: #F5F7FA;
-}
-
-/* Sidebar */
-[data-testid="stSidebar"] {
-    background-color: #0B3C5D;
-}
-
-/* Sidebar text putih */
-[data-testid="stSidebar"] * {
-    color: white !important;
-}
-
-/* Card */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 15px;
-}
-
-/* Result box */
-.result-box {
-    background: linear-gradient(135deg, #0B3C5D, #1E81B0);
-    color: white;
-    padding: 25px;
-    border-radius: 14px;
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-/* Title */
-h1, h2, h3 {
-    color: #0B3C5D;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# HEADER (LOGO + TITLE)
-# =========================
-col1, col2 = st.columns([1, 6])
-
-with col1:
-    if os.path.exists("logo.jpg"):
-        st.image("logo.jpg", width=90)
-
-with col2:
-    st.markdown("## Port Capacity Dashboard")
-    st.caption("Simulasi kapasitas terminal petikemas")
-
-# =========================
-# SIDEBAR
-# =========================
-if os.path.exists("logo.jpg"):
-    st.sidebar.image("logo.jpg", width=120)
-
-st.sidebar.title("Menu Navigasi")
-
-menu = st.sidebar.radio(
-    "",
-    ["Dashboard", "Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"]
-)
-
-# =========================
-# DASHBOARD
-# =========================
-if menu == "Dashboard":
-    st.subheader("📊 Overview Capacity")
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.markdown('<div class="card">Berth Capacity<br><b>501,720</b></div>', unsafe_allow_html=True)
-    c2.markdown('<div class="card">Yard Capacity<br><b>15,943</b></div>', unsafe_allow_html=True)
-    c3.markdown('<div class="card">QC Capacity<br><b>9,549,372</b></div>', unsafe_allow_html=True)
-
-# =========================
-# BERTH
-# =========================
-elif menu == "Berth":
-    st.subheader("🔵 Berth Capacity")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        length = st.number_input("Length of Berth", 0)
-        loa = st.number_input("Avg LOA", 0)
-        dl = st.number_input("Avg D/L per Call", 0)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        bch = st.number_input("BCH", 0)
-        crane_ratio = st.number_input("Crane Ratio", 0.0)
-        teus = st.number_input("TEUs Ratio", 1.13)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # HITUNGAN (sementara)
-    bsh = bch * crane_ratio
-    bt = (dl / bsh) if bsh > 0 else 0
-
-    st.write("BSH =", bsh)
-    st.write("BT per Call =", bt)
-
-    st.markdown(f"""
-    <div class="result-box">
-        Berth Capacity<br>
-        {501720:,.0f} TEU / Tahun
-    </div>
+    <style>
+    .block-container { padding-top: 2rem; padding-bottom: 0rem; }
+    h3 { margin-bottom: 0.5rem; font-size: 1.2rem !important; }
+    [data-testid="stMetricValue"] { font-size: 1.5rem !important; }
+    div[data-testid="column"] { padding: 0.5rem; border-radius: 5px; }
+    </style>
     """, unsafe_allow_html=True)
 
-# =========================
-# YARD
-# =========================
-elif menu == "Yard":
-    st.subheader("🟢 Yard Capacity")
+st.title("🚢 Port Operational Capacity")
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    row = st.number_input("Row", 0)
-    slot = st.number_input("Slot", 0)
-    tier = st.number_input("Tier", 0)
-    dwell = st.number_input("Dwelling Time", 0)
-    st.markdown('</div>', unsafe_allow_html=True)
+tabs = st.tabs(["Berth", "Yard", "Quay Crane", "Yard Crane", "Gate"])
 
-    st.markdown(f"""
-    <div class="result-box">
-        Yard Capacity<br>
-        {15943:,.0f} TEU / Tahun
-    </div>
-    """, unsafe_allow_html=True)
+# --- TAB 1: BERTH ---
+with tabs[0]:
+    # Menggunakan 2 kolom besar: Kiri untuk Input & Auto-Calc, Kanan untuk Ringkasan Utama
+    main_col, side_col = st.columns([3, 1])
 
-# =========================
-# QUAY CRANE
-# =========================
-elif menu == "Quay Crane":
-    st.subheader("🟣 Quay Crane Capacity")
+    with main_col:
+        st.subheader("🔵 Parameter Input & Auto-Calculation")
+        
+        # Row 1: Input Utama
+        c1, c2, c3, c4 = st.columns(4)
+        length_berth = c1.number_input("Length of Berth (m)", value=0)
+        avg_loa = c2.number_input("Avg LOA (m)", value=0)
+        bch = c3.number_input("BCH", value=0)
+        crane_ratio = c4.number_input("Crane Ratio", value=0.0, step=0.1)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    total_qcc = st.number_input("Total QCC", 0)
-    bch_qcc = st.number_input("BCH QCC", 0)
-    st.markdown('</div>', unsafe_allow_html=True)
+        # Row 2: Input & Locked Params
+        c5, c6, c7, c8 = st.columns(4)
+        avg_dl = c5.number_input("Avg D/L per call", value=0)
+        teus_ratio = c6.number_input("Teu's Ratio", value=0.0, step=0.01)
+        safety_dist = c7.number_input("Safety Dist (Locked)", value=1.1, disabled=True)
+        bor = c8.number_input("BOR (Locked)", value=0.65, disabled=True)
 
-    st.markdown(f"""
-    <div class="result-box">
-        QC Capacity<br>
-        {9549372:,.0f} TEU / Tahun
-    </div>
-    """, unsafe_allow_html=True)
+        st.divider()
 
-# =========================
-# YARD CRANE
-# =========================
-elif menu == "Yard Crane":
-    st.subheader("🟤 Yard Crane Capacity")
-    st.info("Silakan tambahkan rumus nanti")
+        # LOGIKA PERHITUNGAN
+        # 1. Number Of Berth
+        num_berth = length_berth / (avg_loa * safety_dist) if avg_loa > 0 else 0
+        # 2. BSH
+        bsh = bch * crane_ratio
+        # 3. BT per Call
+        bt_per_call = avg_dl / bsh if bsh > 0 else 0
+        # 4. Total Hours (Locked)
+        total_hours = 8760
+        # 5. Total Ship Call / Year
+        ship_call_year = (total_hours / bt_per_call) * bor if bt_per_call > 0 else 0
+        # 6. Final Capacity
+        berth_cap = ship_call_year * avg_dl * teus_ratio
 
-# =========================
-# GATE
-# =========================
-elif menu == "Gate":
-    st.subheader("🟠 Gate Capacity")
+        # Baris Hasil Otomatis (Ringkas)
+        st.write("🔍 **Live Calculation Results:**")
+        r1, r2, r3, r4 = st.columns(4)
+        r1.metric("Num of Berth", f"{num_berth:.2f}")
+        r2.metric("BSH", f"{bsh:.2f}")
+        r3.metric("BT/Call", f"{bt_per_call:.2f}")
+        r4.metric("Ship Call/Yr", f"{ship_call_year:.0f}")
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    lane = st.number_input("Total Lane", 0)
-    service = st.number_input("Service Time", 0)
-    st.markdown('</div>', unsafe_allow_html=True)
+    with side_col:
+        # Box Hasil Akhir di Samping agar terlihat jelas tanpa scroll
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.info("### Final Result")
+        st.metric("Berth Capacity", f"{berth_cap:,.0f}", delta="TEU/tahun")
+        
+        with st.expander("Lihat Konstanta"):
+            st.write(f"Total Hours: {total_hours}")
+            st.write(f"BOR Target: {bor}")
 
-    st.markdown("""
-    <div class="result-box">
-        Gate Capacity<br>
-        465,133 TEU / Hari
-    </div>
-    """, unsafe_allow_html=True)
+# --- TAB 2: YARD (Dibuat Ringkas Juga) ---
+with tabs[1]:
+    col_y_left, col_y_right = st.columns([3, 1])
+    with col_y_left:
+        st.subheader("🟢 Yard Input")
+        y1, y2, y3 = st.columns(3)
+        row = y1.number_input("Row", value=0)
+        slot = y2.number_input("Slot", value=0)
+        tier = y3.number_input("Tier", value=0)
+        
+        y4, y5, y6 = st.columns(3)
+        eff_cap = y4.number_input("Effective Cap", value=0)
+        dauling = y5.number_input("Dauling Time", value=0)
+        yor_max = y6.number_input("YOR Max (%)", value=70)
+        
+        # Rumus sederhana
+        yard_cap = (slot * row * tier * 365 / (dauling if dauling > 0 else 1)) * (yor_max/100)
+
+    with col_y_right:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.success("### Final Result")
+        st.metric("Yard Capacity", f"{yard_cap:,.0f}", "TEU/tahun")
+
+# --- TAB LAINNYA ---
+with tabs[4]:
+    st.subheader("🟠 Gate Summary")
+    st.columns(3)[0].warning("Gate In & Out logic ready.")
